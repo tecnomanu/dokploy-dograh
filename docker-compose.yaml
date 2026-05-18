@@ -120,7 +120,10 @@ services:
       - app-network
 
   api:
-    image: ${REGISTRY:-dograhai}/dograh-api:latest
+    build:
+      context: https://github.com/tecnomanu/dograh.git#fix/chan-websocket-simple-bridge-asymmetry
+      dockerfile: api/Dockerfile
+    image: dograh-api:ws-fix
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -202,7 +205,10 @@ services:
       - app-network
 
   ui:
-    image: ${REGISTRY:-dograhai}/dograh-ui:latest
+    build:
+      context: https://github.com/tecnomanu/dograh.git#fix/chan-websocket-simple-bridge-asymmetry
+      dockerfile: ui/Dockerfile
+    image: dograh-ui:ws-fix
     environment:
       # Server-side URL (SSR, internal Docker network)
       BACKEND_URL: "${BACKEND_URL:-http://api:8000}"
