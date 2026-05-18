@@ -2,9 +2,9 @@ services:
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requerido — generá uno con: openssl rand -hex 32}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
     logging:
       driver: "json-file"
       options:
@@ -22,12 +22,14 @@ services:
 
   redis:
     image: redis:7
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD requerido}
     command: >
-      --requirepass redissecret
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD requerido — generá uno con: openssl rand -hex 32}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redissecret", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping"]
       interval: 3s
       timeout: 10s
       retries: 10
@@ -133,10 +135,10 @@ services:
       BACKEND_API_ENDPOINT: "${BACKEND_API_ENDPOINT:-http://localhost:8000}"
 
       # Database configuration (using containerized postgres)
-      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/postgres"
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-postgres}"
 
       # Redis configuration (using containerized redis)
-      REDIS_URL: "redis://:redissecret@redis:6379"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
 
       # Storage configuration - using local MinIO
       ENABLE_AWS_S3: "false"
@@ -178,7 +180,7 @@ services:
       POSTHOG_HOST: "https://us.i.posthog.com"
 
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -212,7 +214,7 @@ services:
       POSTHOG_KEY: "phc_ItizB1dP6yv7ZYobbcqrpxTdbomDA8hJFSEmAMdYvIr"
       POSTHOG_HOST: "https://us.posthog.com"
     ports:
-      - "3010:3010"
+      - "127.0.0.1:3010:3010"
     depends_on:
       api:
         condition: service_healthy
