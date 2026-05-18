@@ -123,6 +123,8 @@ services:
 
   api:
     image: ${REGISTRY:-dograhai}/dograh-api:latest
+    extra_hosts:
+      - \"host.docker.internal:host-gateway\"
     volumes:
       - shared-tmp:/tmp
     environment:
